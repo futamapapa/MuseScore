@@ -880,6 +880,12 @@ void NotationInteraction::moveChordNoteSelection(MoveDirection d)
 
     select({ chordElem }, SelectType::SINGLE, chordElem->staffIdx());
     showItem(chordElem);
+
+    // Update the TAB input cursor to match the selected note.
+    if (noteInput()->isNoteInputMode() && noteInput()->state().staffGroup() == mu::engraving::StaffGroup::TAB
+        && chordElem->isNote()) {
+        SetCurrentString(toNote(chordElem)->string());
+    }
 }
 
 void NotationInteraction::moveSegmentSelection(MoveDirection d)
@@ -4210,6 +4216,12 @@ void NotationInteraction::moveElementSelection(MoveDirection d)
 
     if (toEl->needStartEditingAfterSelecting()) {
         startEditElement(toEl);
+    }
+
+    // Update the TAB input cursor to match the selected note.
+    if (noteInput()->isNoteInputMode() && noteInput()->state().staffGroup() == mu::engraving::StaffGroup::TAB
+        && toEl->isNote()) {
+        SetCurrentString(toNote(toEl)->string());
     }
 }
 
