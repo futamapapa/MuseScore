@@ -1115,10 +1115,15 @@ void NotationActionController::move(MoveDirection direction, bool quickly)
     const NoteInputState& state = interaction->noteInput()->state();
     const bool previousSelectionExists = currentNotationScore() && currentNotationScore()->selection().currentCR();
     if (interaction->selection()->isNone() && previousSelectionExists && !state.beyondScore()) {
-        // Try to restore the previous selection...
-        interaction->moveSelection(direction, MoveSelectionType::EngravingItem);
-        seekAndPlaySelectedElement(true);
-        return;
+        if (state.staffGroup() == mu::engraving::StaffGroup::TAB) {
+            // In TAB staves, select the chord or rest first if the input cursor is not on a note.
+            interaction->findAndSelectChordRest(state.tick());
+        } else {
+            // Try to restore the previous selection...
+            interaction->moveSelection(direction, MoveSelectionType::EngravingItem);
+            seekAndPlaySelectedElement(true);
+            return;
+        }
     }
 
     const EngravingItem* selectedElement = interaction->selection()->element();

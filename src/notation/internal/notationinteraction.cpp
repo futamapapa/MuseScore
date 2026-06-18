@@ -4247,8 +4247,11 @@ void NotationInteraction::moveStringSelection(MoveDirection d)
             for (Note* note : chord->notes()) {
                 if (note->string() == strg) {
                     select({ note }, SelectType::SINGLE);
+                    return;
                 }
             }
+            // Clear the selection if the input cursor is not on a note in the current chord.
+            score()->deselectAll();
         }
     }
 }
