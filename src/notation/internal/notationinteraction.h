@@ -453,6 +453,7 @@ private:
 
     void moveElementSelection(MoveDirection d);
     void moveStringSelection(MoveDirection d);
+    bool SetCurrentString(int strg);
 
     EngravingItem* dropTarget(mu::engraving::EditData& ed) const;
     bool prepareDropStandardElement(const muse::PointF& pos, Qt::KeyboardModifiers modifiers);

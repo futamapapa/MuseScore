@@ -3938,6 +3938,11 @@ void NotationInteraction::moveSelection(MoveDirection d, MoveSelectionType type)
     showItem(item);
 
     if (noteInput()->isNoteInputMode()) {
+        // For TAB staves, the current input string needs to be reselected.
+        if (noteInput()->state().staffGroup() == mu::engraving::StaffGroup::TAB) {
+            moveStringSelection(d);
+            return;
+        }
         notifyAboutNoteInputStateChanged();
     }
 }
@@ -4212,17 +4217,17 @@ void NotationInteraction::moveStringSelection(MoveDirection d)
 {
     mu::engraving::InputState& is = score()->inputState();
     mu::engraving::Staff* staff = score()->staff(track2staff(is.track()));
-    int instrStrgs = static_cast<int>(staff->part()->stringData(is.tick(), staff->idx())->strings());
     int delta = (staff->staffType(is.tick())->upsideDown() ? -1 : 1);
 
     if (MoveDirection::Up == d) {
         delta = -delta;
+    } else if (MoveDirection::Down != d) {
+        // Used to select the note on the current string after a 'prev/next-chord' command.
+        delta = 0;
     }
 
     int strg = is.string() + delta;
-    if (strg >= 0 && strg < instrStrgs && strg != is.string()) {
-        is.setString(strg);
-
+    if (SetCurrentString(strg)) {
         const ChordRest* chordRest = is.cr();
         if (chordRest && chordRest->isChord()) {
             const Chord* chord = toChord(chordRest);
@@ -4233,9 +4238,23 @@ void NotationInteraction::moveStringSelection(MoveDirection d)
                 }
             }
         }
-
-        notifyAboutNoteInputStateChanged();
     }
+}
+
+bool NotationInteraction::SetCurrentString(int strg)
+{
+    mu::engraving::InputState& is = score()->inputState();
+    mu::engraving::Staff* staff = score()->staff(track2staff(is.track()));
+    int instrStrgs = static_cast<int>(staff->part()->stringData(is.tick(), staff->idx())->strings());
+
+    // Keep the case strg == is.string() for moveDirection::Left/Right.
+    if (strg >= 0 && strg < instrStrgs) {
+        is.setString(strg);
+        notifyAboutNoteInputStateChanged();
+        return true;
+    }
+
+    return false;
 }
 
 inline mu::engraving::DirectionV toDirection(MoveDirection d)
